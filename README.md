@@ -15,36 +15,31 @@ This repository contains scripts to containerize the GreenLake MCP servers:
 
 - Docker and Docker Compose installed
 - Valid GreenLake API credentials
-- The [gl-mcp](https://github.com/HewlettPackard/gl-mcp) source code
 
 ## Quick Start
 
-### 1. Clone the gl-mcp repository
+### 1. Clone this repository
 
 ```bash
-git clone https://github.com/HewlettPackard/gl-mcp.git
-cd gl-mcp
+git clone https://github.com/Jgiet001-AI/glp-mcp-Docker.git
+cd glp-mcp-Docker
 ```
 
-### 2. Copy the scripts to your project
-
-Copy the `scripts/` directory from this repository to your gl-mcp project.
-
-### 3. Configure environment
+### 2. Configure environment
 
 ```bash
 cp .env.example .env
 # Edit .env with your GreenLake credentials
 ```
 
-### 4. Run the setup script
+### 3. Run the setup script
 
 ```bash
 chmod +x scripts/setup-docker.sh
 ./scripts/setup-docker.sh
 ```
 
-### 5. Build and start containers
+### 4. Build and start containers
 
 ```bash
 # Run in foreground
@@ -54,7 +49,7 @@ docker-compose up --build
 docker-compose up --build -d
 ```
 
-### 6. Stop containers
+### 5. Stop containers
 
 ```bash
 docker-compose down
@@ -120,4 +115,4 @@ MCP_TOOL_MODE=static
 
 ## License
 
-See the [gl-mcp](https://github.com/HewlettPackard/gl-mcp) repository for license information.
+MIT License
