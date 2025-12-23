@@ -111,7 +111,7 @@ MCP_TOOL_MODE=static
 | `dockerfile_script.sh` | Creates Dockerfiles for each MCP server |
 | `dockerignore_script.sh` | Creates .dockerignore files |
 | `docker_compose_script.sh` | Creates docker-compose.yml |
-| `add_env_to_dockerignore.sh` | Adds .env to .gitignore |
+| `add_env_to_gitignore.sh` | Adds .env to .gitignore to protect credentials |
 
 ## License
 
