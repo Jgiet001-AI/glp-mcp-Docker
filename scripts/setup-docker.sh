@@ -38,7 +38,7 @@ echo ""
 
 # Step 3: Add .env to .gitignore
 echo "🔒 Step 3/5: Securing .env in .gitignore..."
-bash "$SCRIPT_DIR/add_env_to_dockerignore.sh"
+bash "$SCRIPT_DIR/add_env_to_gitignore.sh"
 echo ""
 
 # Step 4: Create docker-compose.yml
