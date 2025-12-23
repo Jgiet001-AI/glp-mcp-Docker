@@ -1,0 +1,130 @@
+version: '3.8'
+
+services:
+  # Audit Logs MCP Server
+  audit-logs:
+    build:
+      context: ./src/audit-logs
+      dockerfile: Dockerfile
+    container_name: mcp-audit-logs
+    environment:
+      GREENLAKE_API_BASE_URL: ${GREENLAKE_API_BASE_URL:-https://global.api.greenlake.hpe.com}
+      GREENLAKE_CLIENT_ID: ${GREENLAKE_CLIENT_ID}
+      GREENLAKE_CLIENT_SECRET: ${GREENLAKE_CLIENT_SECRET}
+      GREENLAKE_WORKSPACE_ID: ${GREENLAKE_WORKSPACE_ID}
+      MCP_TOOL_MODE: ${MCP_TOOL_MODE:-dynamic}
+      GREENLAKE_LOG_LEVEL: ${GREENLAKE_LOG_LEVEL:-INFO}
+      GREENLAKE_FILE_LOGGING: ${GREENLAKE_FILE_LOGGING:-false}
+    volumes:
+      - audit-logs-data:/root/.hpe/mcp-logs
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+    networks:
+      - mcp-network
+
+  # Devices MCP Server
+  devices:
+    build:
+      context: ./src/devices
+      dockerfile: Dockerfile
+    container_name: mcp-devices
+    environment:
+      GREENLAKE_API_BASE_URL: ${GREENLAKE_API_BASE_URL:-https://global.api.greenlake.hpe.com}
+      GREENLAKE_CLIENT_ID: ${GREENLAKE_CLIENT_ID}
+      GREENLAKE_CLIENT_SECRET: ${GREENLAKE_CLIENT_SECRET}
+      GREENLAKE_WORKSPACE_ID: ${GREENLAKE_WORKSPACE_ID}
+      MCP_TOOL_MODE: ${MCP_TOOL_MODE:-dynamic}
+      GREENLAKE_LOG_LEVEL: ${GREENLAKE_LOG_LEVEL:-INFO}
+      GREENLAKE_FILE_LOGGING: ${GREENLAKE_FILE_LOGGING:-false}
+    volumes:
+      - devices-data:/root/.hpe/mcp-logs
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+    networks:
+      - mcp-network
+
+  # Subscriptions MCP Server
+  subscriptions:
+    build:
+      context: ./src/subscriptions
+      dockerfile: Dockerfile
+    container_name: mcp-subscriptions
+    environment:
+      GREENLAKE_API_BASE_URL: ${GREENLAKE_API_BASE_URL:-https://global.api.greenlake.hpe.com}
+      GREENLAKE_CLIENT_ID: ${GREENLAKE_CLIENT_ID}
+      GREENLAKE_CLIENT_SECRET: ${GREENLAKE_CLIENT_SECRET}
+      GREENLAKE_WORKSPACE_ID: ${GREENLAKE_WORKSPACE_ID}
+      MCP_TOOL_MODE: ${MCP_TOOL_MODE:-dynamic}
+      GREENLAKE_LOG_LEVEL: ${GREENLAKE_LOG_LEVEL:-INFO}
+      GREENLAKE_FILE_LOGGING: ${GREENLAKE_FILE_LOGGING:-false}
+    volumes:
+      - subscriptions-data:/root/.hpe/mcp-logs
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+    networks:
+      - mcp-network
+
+  # Users MCP Server
+  users:
+    build:
+      context: ./src/users
+      dockerfile: Dockerfile
+    container_name: mcp-users
+    environment:
+      GREENLAKE_API_BASE_URL: ${GREENLAKE_API_BASE_URL:-https://global.api.greenlake.hpe.com}
+      GREENLAKE_CLIENT_ID: ${GREENLAKE_CLIENT_ID}
+      GREENLAKE_CLIENT_SECRET: ${GREENLAKE_CLIENT_SECRET}
+      GREENLAKE_WORKSPACE_ID: ${GREENLAKE_WORKSPACE_ID}
+      MCP_TOOL_MODE: ${MCP_TOOL_MODE:-dynamic}
+      GREENLAKE_LOG_LEVEL: ${GREENLAKE_LOG_LEVEL:-INFO}
+      GREENLAKE_FILE_LOGGING: ${GREENLAKE_FILE_LOGGING:-false}
+    volumes:
+      - users-data:/root/.hpe/mcp-logs
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+    networks:
+      - mcp-network
+
+  # Workspaces MCP Server
+  workspaces:
+    build:
+      context: ./src/workspaces
+      dockerfile: Dockerfile
+    container_name: mcp-workspaces
+    environment:
+      GREENLAKE_API_BASE_URL: ${GREENLAKE_API_BASE_URL:-https://global.api.greenlake.hpe.com}
+      GREENLAKE_CLIENT_ID: ${GREENLAKE_CLIENT_ID}
+      GREENLAKE_CLIENT_SECRET: ${GREENLAKE_CLIENT_SECRET}
+      GREENLAKE_WORKSPACE_ID: ${GREENLAKE_WORKSPACE_ID}
+      MCP_TOOL_MODE: ${MCP_TOOL_MODE:-dynamic}
+      GREENLAKE_LOG_LEVEL: ${GREENLAKE_LOG_LEVEL:-INFO}
+      GREENLAKE_FILE_LOGGING: ${GREENLAKE_FILE_LOGGING:-false}
+    volumes:
+      - workspaces-data:/root/.hpe/mcp-logs
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+    networks:
+      - mcp-network
+
+# Named volumes for persistent log storage
+volumes:
+  audit-logs-data:
+    driver: local
+  devices-data:
+    driver: local
+  subscriptions-data:
+    driver: local
+  users-data:
+    driver: local
+  workspaces-data:
+    driver: local
+
+# Network for inter-service communication (if needed)
+networks:
+  mcp-network:
+    driver: bridge
