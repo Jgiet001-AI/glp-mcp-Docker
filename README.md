@@ -55,6 +55,90 @@ docker-compose up --build -d
 docker-compose down
 ```
 
+## Claude Desktop MCP Configuration
+
+To connect Claude Desktop to the running Docker containers, add this to your Claude Desktop config file:
+
+**Config location:**
+- macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
+- Windows: `%APPDATA%\Claude\claude_desktop_config.json`
+
+### Finding Your Docker Path
+
+> ⚠️ **Important:** Claude Desktop may not find `docker` in its PATH. You must use the **full path** to the docker executable.
+
+Run this command to find your docker path:
+```bash
+which docker
+```
+
+Common locations:
+- **Docker Desktop (macOS):** `/Users/<username>/.docker/bin/docker`
+- **Homebrew:** `/opt/homebrew/bin/docker` or `/usr/local/bin/docker`
+- **Linux:** `/usr/bin/docker`
+
+### Sample Configuration
+
+Replace `/path/to/docker` with your actual docker path from the command above:
+
+```json
+{
+  "mcpServers": {
+    "greenlake-audit-logs": {
+      "command": "/path/to/docker",
+      "args": ["exec", "-i", "mcp-audit-logs", "uv", "run", "python", "__main__.py"]
+    },
+    "greenlake-devices": {
+      "command": "/path/to/docker",
+      "args": ["exec", "-i", "mcp-devices", "uv", "run", "python", "__main__.py"]
+    },
+    "greenlake-subscriptions": {
+      "command": "/path/to/docker",
+      "args": ["exec", "-i", "mcp-subscriptions", "uv", "run", "python", "__main__.py"]
+    },
+    "greenlake-users": {
+      "command": "/path/to/docker",
+      "args": ["exec", "-i", "mcp-users", "uv", "run", "python", "__main__.py"]
+    },
+    "greenlake-workspaces": {
+      "command": "/path/to/docker",
+      "args": ["exec", "-i", "mcp-workspaces", "uv", "run", "python", "__main__.py"]
+    }
+  }
+}
+```
+
+### Example with Docker Desktop on macOS
+
+If your docker is at `/Users/johndoe/.docker/bin/docker`:
+
+```json
+{
+  "mcpServers": {
+    "greenlake-audit-logs": {
+      "command": "/Users/johndoe/.docker/bin/docker",
+      "args": ["exec", "-i", "mcp-audit-logs", "uv", "run", "python", "__main__.py"]
+    },
+    "greenlake-devices": {
+      "command": "/Users/johndoe/.docker/bin/docker",
+      "args": ["exec", "-i", "mcp-devices", "uv", "run", "python", "__main__.py"]
+    }
+  }
+}
+```
+
+### Troubleshooting: "No such file or directory"
+
+If you see this error in Claude logs (`~/Library/Logs/Claude/mcp-server-*.log`):
+
+```
+Failed to spawn process: No such file or directory
+```
+
+This means Claude can't find the `docker` command. Fix by:
+1. Run `which docker` to get the full path
+2. Update your config to use the full path instead of just `docker`
+
 ## Tool Mode: Dynamic vs Static
 
 By default, the MCP servers are configured to use **dynamic mode** (`MCP_TOOL_MODE=dynamic`), which provides 3 meta-tools that dynamically discover and execute GreenLake API operations.
