@@ -60,6 +60,42 @@ docker-compose up --build -d
 docker-compose down
 ```
 
+## Tool Mode: Dynamic vs Static
+
+By default, the MCP servers are configured to use **dynamic mode** (`MCP_TOOL_MODE=dynamic`), which provides 3 meta-tools that dynamically discover and execute GreenLake API operations.
+
+### Switching to Static Mode
+
+If you prefer to have all tools exposed individually (static mode), you can change this in your `.env` file:
+
+```bash
+# In your .env file, change:
+MCP_TOOL_MODE=static
+```
+
+**Comparison:**
+
+| Mode | Description | Tools Exposed |
+|------|-------------|---------------|
+| `dynamic` (default) | Meta-tools that dynamically discover operations | 3 tools per server |
+| `static` | All API operations exposed as individual tools | Many tools per server |
+
+**Where to change:**
+1. **For running containers**: Edit `.env` in your project root, then restart containers:
+   ```bash
+   docker-compose down && docker-compose up
+   ```
+
+2. **For new setups**: Edit `.env.example` before copying to `.env`
+
+3. **In docker-compose.yml**: You can also override per-service:
+   ```yaml
+   services:
+     devices:
+       environment:
+         MCP_TOOL_MODE: static  # Override for this service only
+   ```
+
 ## Environment Variables
 
 | Variable | Description | Default |
