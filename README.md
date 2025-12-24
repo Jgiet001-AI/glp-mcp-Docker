@@ -197,6 +197,10 @@ MCP_TOOL_MODE=static
 | `docker_compose_script.sh` | Creates docker-compose.yml |
 | `add_env_to_gitignore.sh` | Adds .env to .gitignore to protect credentials |
 
+## Acknowledgments
+
+This project is based on [gl-mcp](https://github.com/HewlettPackard/gl-mcp) by Hewlett Packard Enterprise, licensed under the MIT License.
+
 ## License
 
 MIT License
