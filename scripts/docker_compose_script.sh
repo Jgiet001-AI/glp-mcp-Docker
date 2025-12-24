@@ -1,5 +1,4 @@
 cat > docker-compose.yml << 'EOF'
-
 services:
   # Audit Logs MCP Server
   audit-logs:
