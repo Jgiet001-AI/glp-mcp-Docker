@@ -175,6 +175,45 @@ MCP_TOOL_MODE=static
          MCP_TOOL_MODE: static  # Override for this service only
    ```
 
+## Security Checks
+
+This repository includes security scanning tools to help maintain code quality and identify vulnerabilities.
+
+### Running All Security Checks
+
+```bash
+chmod +x scripts/run_security_checks.sh
+./scripts/run_security_checks.sh
+```
+
+### Individual Security Scripts
+
+| Script | Tool | What It Checks |
+|--------|------|----------------|
+| `check_bandit.py` | [Bandit](https://bandit.readthedocs.io/) | Python code for security vulnerabilities (SQL injection, hardcoded passwords, unsafe functions, etc.) |
+| `check_pip_audit.py` | [pip-audit](https://pypi.org/project/pip-audit/) | Python dependencies for known CVEs and security advisories |
+| `check_secrets.py` | [detect-secrets](https://github.com/Yelp/detect-secrets) | Codebase for accidentally committed secrets, API keys, and credentials |
+
+### Security Check Details
+
+#### Bandit (Code Security)
+- **Purpose**: Finds common security issues in Python code
+- **Checks for**: SQL injection, shell injection, hardcoded passwords, use of `eval()`, weak crypto, etc.
+- **Output**: `bandit-results.json`
+- **Severity levels**: HIGH (must fix), MEDIUM (review), LOW (informational)
+
+#### pip-audit (Dependency Vulnerabilities)
+- **Purpose**: Identifies known vulnerabilities in installed packages
+- **Data source**: PyPI Advisory Database and OSV (Open Source Vulnerability) database
+- **Output**: `pip-audit-results.json`
+- **Action**: Update vulnerable packages to fixed versions
+
+#### detect-secrets (Secret Detection)
+- **Purpose**: Prevents accidental commit of sensitive data
+- **Detects**: API keys, passwords, tokens, private keys, AWS credentials, etc.
+- **Allowlist**: Common test/example values are automatically ignored
+- **Action**: Remove secrets from code, use environment variables instead
+
 ## Environment Variables
 
 | Variable | Description | Default |
@@ -196,6 +235,10 @@ MCP_TOOL_MODE=static
 | `dockerignore_script.sh` | Creates .dockerignore files |
 | `docker_compose_script.sh` | Creates docker-compose.yml |
 | `add_env_to_gitignore.sh` | Adds .env to .gitignore to protect credentials |
+| `run_security_checks.sh` | Runs all security checks (Bandit, pip-audit, detect-secrets) |
+| `check_bandit.py` | Python security vulnerability scanning |
+| `check_pip_audit.py` | Dependency vulnerability checks |
+| `check_secrets.py` | Hardcoded secrets detection |
 
 ## Acknowledgments
 
