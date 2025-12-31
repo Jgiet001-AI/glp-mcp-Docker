@@ -1,22 +1,32 @@
 FROM python:3.11-slim
 
+# OCI Image Labels
+LABEL org.opencontainers.image.title="GreenLake MCP Workspaces Server"
+LABEL org.opencontainers.image.description="HPE GreenLake workspaces MCP Server"
+LABEL org.opencontainers.image.vendor="HPE GreenLake Platform Team"
+LABEL org.opencontainers.image.source="https://github.com/Jgiet001-AI/glp-mcp-Docker"
+LABEL org.opencontainers.image.licenses="Apache-2.0"
+
+# Create non-root user for security
+RUN groupadd --gid 1000 mcpuser && \
+    useradd --uid 1000 --gid 1000 --create-home mcpuser
+
 WORKDIR /app
 
-# Install uv package manager
-RUN pip install --no-cache-dir uv
+# Install uv package manager (pinned version for reproducibility)
+RUN pip install --no-cache-dir uv==0.5.14
 
-# Copy project files
-COPY . .
+# Copy application code
+COPY --chown=mcpuser:mcpuser . .
 
-# Install dependencies using uv
-RUN uv sync --frozen
+# Install dependencies as root (needs write to cache), then switch
+RUN uv sync --frozen --no-dev
 
-ENV GREENLAKE_API_BASE_URL=""
-ENV GREENLAKE_CLIENT_ID=""
-ENV GREENLAKE_CLIENT_SECRET=""
-ENV GREENLAKE_WORKSPACE_ID=""
-ENV MCP_TOOL_MODE="dynamic"
-ENV GREENLAKE_LOG_LEVEL="INFO"
-ENV GREENLAKE_FILE_LOGGING="false"
+# Switch to non-root user
+USER mcpuser
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD python -c "import sys; sys.exit(0)" || exit 1
 
 CMD ["uv", "run", "python", "__main__.py"]

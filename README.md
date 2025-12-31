@@ -5,6 +5,7 @@ Docker setup scripts and configuration for GreenLake Platform MCP servers.
 ## Overview
 
 This repository contains scripts to containerize the GreenLake MCP servers:
+
 - **audit-logs** - Audit log management
 - **devices** - Device inventory management  
 - **subscriptions** - Subscription management
@@ -60,6 +61,7 @@ docker-compose down
 To connect Claude Desktop to the running Docker containers, add this to your Claude Desktop config file:
 
 **Config location:**
+
 - macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
 - Windows: `%APPDATA%\Claude\claude_desktop_config.json`
 
@@ -68,11 +70,13 @@ To connect Claude Desktop to the running Docker containers, add this to your Cla
 > ⚠️ **Important:** Claude Desktop may not find `docker` in its PATH. You must use the **full path** to the docker executable.
 
 Run this command to find your docker path:
+
 ```bash
 which docker
 ```
 
 Common locations:
+
 - **Docker Desktop (macOS):** `/Users/<username>/.docker/bin/docker`
 - **Homebrew:** `/opt/homebrew/bin/docker` or `/usr/local/bin/docker`
 - **Linux:** `/usr/bin/docker`
@@ -136,6 +140,7 @@ Failed to spawn process: No such file or directory
 ```
 
 This means Claude can't find the `docker` command. Fix by:
+
 1. Run `which docker` to get the full path
 2. Update your config to use the full path instead of just `docker`
 
@@ -160,7 +165,9 @@ MCP_TOOL_MODE=static
 | `static` | All API operations exposed as individual tools | Many tools per server |
 
 **Where to change:**
+
 1. **For running containers**: Edit `.env` in your project root, then restart containers:
+
    ```bash
    docker-compose down && docker-compose up
    ```
@@ -168,6 +175,7 @@ MCP_TOOL_MODE=static
 2. **For new setups**: Edit `.env.example` before copying to `.env`
 
 3. **In docker-compose.yml**: You can also override per-service:
+
    ```yaml
    services:
      devices:
@@ -225,6 +233,35 @@ chmod +x scripts/run_security_checks.sh
 | `MCP_TOOL_MODE` | Tool mode: `dynamic` or `static` | `dynamic` |
 | `GREENLAKE_LOG_LEVEL` | Log level: `DEBUG`, `INFO`, `WARNING`, `ERROR` | `INFO` |
 | `GREENLAKE_FILE_LOGGING` | Enable file logging | `false` |
+
+## Docker Hub Images
+
+Pre-built images are available on Docker Hub for quick deployment without building locally:
+
+| Service | Image |
+|---------|-------|
+| audit-logs | `jgiet001/greenlake-mcp-audit-logs` |
+| devices | `jgiet001/greenlake-mcp-devices` |
+| subscriptions | `jgiet001/greenlake-mcp-subscriptions` |
+| users | `jgiet001/greenlake-mcp-users` |
+| workspaces | `jgiet001/greenlake-mcp-workspaces` |
+
+### Using Pre-built Images
+
+```bash
+# Configure environment
+cp .env.example .env
+# Edit .env with your GreenLake credentials
+
+# Run using pre-built images
+docker-compose -f docker-compose.hub.yml up -d
+```
+
+### Available Tags
+
+- `latest` - Latest stable build from main branch
+- `vX.Y.Z` - Specific version (e.g., `v1.0.0`)
+- `sha-XXXXXXX` - Specific commit build
 
 ## Scripts
 
