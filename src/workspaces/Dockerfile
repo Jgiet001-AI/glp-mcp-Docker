@@ -1,4 +1,5 @@
-FROM python:3.11-slim
+# Use latest patched Python slim image
+FROM python:3.11-slim-bookworm
 
 # OCI Image Labels
 LABEL org.opencontainers.image.title="GreenLake MCP Workspaces Server"
@@ -6,6 +7,12 @@ LABEL org.opencontainers.image.description="HPE GreenLake workspaces MCP Server"
 LABEL org.opencontainers.image.vendor="HPE GreenLake Platform Team"
 LABEL org.opencontainers.image.source="https://github.com/Jgiet001-AI/glp-mcp-Docker"
 LABEL org.opencontainers.image.licenses="Apache-2.0"
+
+# Update system packages to fix vulnerabilities
+RUN apt-get update && \
+    apt-get upgrade -y && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 # Create non-root user for security
 RUN groupadd --gid 1000 mcpuser && \
