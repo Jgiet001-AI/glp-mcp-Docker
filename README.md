@@ -1,5 +1,7 @@
 # GreenLake MCP Docker Setup
 
+[![CI/CD Pipeline](https://github.com/Jgiet001-AI/glp-mcp-Docker/actions/workflows/ci.yml/badge.svg)](https://github.com/Jgiet001-AI/glp-mcp-Docker/actions/workflows/ci.yml)
+
 > ⚠️ **DISCLAIMER: This is an unofficial, community-maintained project.** It is not affiliated with, endorsed by, or supported by Hewlett Packard Enterprise (HPE). For the official GreenLake MCP implementation, please visit [HewlettPackard/gl-mcp](https://github.com/HewlettPackard/gl-mcp).
 
 Docker setup scripts and configuration for GreenLake Platform MCP servers.
@@ -18,6 +20,21 @@ This repository contains scripts to containerize the GreenLake MCP servers:
 
 - Docker and Docker Compose installed
 - Valid GreenLake API credentials
+
+## Container Images
+
+Pre-built container images are available on GitHub Container Registry:
+
+```bash
+# Pull latest images
+docker pull ghcr.io/jgiet001-ai/glp-mcp-audit-logs:latest
+docker pull ghcr.io/jgiet001-ai/glp-mcp-devices:latest
+docker pull ghcr.io/jgiet001-ai/glp-mcp-subscriptions:latest
+docker pull ghcr.io/jgiet001-ai/glp-mcp-users:latest
+docker pull ghcr.io/jgiet001-ai/glp-mcp-workspaces:latest
+```
+
+Or build locally using the Quick Start guide below.
 
 ## Quick Start
 
@@ -46,16 +63,16 @@ chmod +x scripts/setup-docker.sh
 
 ```bash
 # Run in foreground
-docker-compose up --build
+docker compose up --build
 
 # Or run in detached mode
-docker-compose up --build -d
+docker compose up --build -d
 ```
 
 ### 5. Stop containers
 
 ```bash
-docker-compose down
+docker compose down
 ```
 
 ## Claude Desktop MCP Configuration
@@ -171,7 +188,7 @@ MCP_TOOL_MODE=static
 1. **For running containers**: Edit `.env` in your project root, then restart containers:
 
    ```bash
-   docker-compose down && docker-compose up
+   docker compose down && docker compose up
    ```
 
 2. **For new setups**: Edit `.env.example` before copying to `.env`
