@@ -91,12 +91,13 @@ jobs:
         run: |
           # MCP servers use stdio transport and exit when stdin closes
           # Test that the container can start and import the server module
+          # Must use 'uv run' to activate the virtual environment
           docker run --rm \
             -e GREENLAKE_CLIENT_ID=test \
             -e GREENLAKE_CLIENT_SECRET=test \
             -e GREENLAKE_WORKSPACE_ID=test \
             glp-mcp-${{ matrix.service }}:${{ github.sha }} \
-            python -c "from server import mcp_server; print('✅ Server module loaded successfully')"
+            uv run python -c "from server import mcp_server; print('✅ Server module loaded successfully')"
 
       - name: Get image size
         run: |
@@ -190,10 +191,11 @@ jobs:
         run: |
           # MCP servers use stdio transport - they don't stay running without a client
           # Verify each service can start and load its server module
+          # Must use 'uv run' to activate the virtual environment
           services=(audit-logs devices subscriptions users workspaces)
           for service in "${services[@]}"; do
             echo "Testing mcp-$service..."
-            docker compose run --rm $service python -c "from server import mcp_server; print('✅ $service: Server module loaded')" || {
+            docker compose run --rm $service uv run python -c "from server import mcp_server; print('✅ $service: Server module loaded')" || {
               echo "❌ $service failed to load server module"
               exit 1
             }

@@ -57,6 +57,6 @@ USER mcpuser
 
 # Health check - verify server module can be imported
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD python -c "from server import mcp_server; print('healthy')" || exit 1
+    CMD uv run python -c "from server import mcp_server; print('healthy')" || exit 1
 
 CMD ["uv", "run", "python", "__main__.py"]
