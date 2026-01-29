@@ -12,7 +12,8 @@ RUN pip install --no-cache-dir uv==0.5.14
 WORKDIR /app
 
 # Copy only dependency files first (for layer caching)
-COPY pyproject.toml uv.lock ./
+# README.md is required by hatchling during build
+COPY pyproject.toml uv.lock README.md ./
 
 # Install dependencies with cache mount for faster rebuilds
 RUN --mount=type=cache,target=/root/.cache/uv \
