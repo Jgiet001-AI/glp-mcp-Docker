@@ -46,8 +46,8 @@ RUN pip install --no-cache-dir uv==0.5.14
 
 WORKDIR /app
 
-# Copy installed dependencies from deps stage
-COPY --from=deps /app/.venv /app/.venv
+# Copy installed dependencies from deps stage (with correct ownership)
+COPY --from=deps --chown=mcpuser:mcpuser /app/.venv /app/.venv
 
 # Copy application code
 COPY --chown=mcpuser:mcpuser . .
