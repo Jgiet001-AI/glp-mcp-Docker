@@ -1,5 +1,19 @@
+# =============================================================================
+# HPE GreenLake MCP Docker - Docker Compose Configuration
+# =============================================================================
+# Production-ready orchestration for GreenLake MCP servers
+#
+# Usage:
+#   docker compose up -d           # Start all services
+#   docker compose logs -f         # Follow logs
+#   docker compose ps              # Check health status
+#   docker compose down            # Stop all services
+# =============================================================================
+
 services:
+  # ---------------------------------------------------------------------------
   # Audit Logs MCP Server
+  # ---------------------------------------------------------------------------
   audit-logs:
     build:
       context: ./src/audit-logs
@@ -20,8 +34,18 @@ services:
     tty: true
     networks:
       - mcp-network
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
 
+  # ---------------------------------------------------------------------------
   # Devices MCP Server
+  # ---------------------------------------------------------------------------
   devices:
     build:
       context: ./src/devices
@@ -42,8 +66,18 @@ services:
     tty: true
     networks:
       - mcp-network
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
 
+  # ---------------------------------------------------------------------------
   # Subscriptions MCP Server
+  # ---------------------------------------------------------------------------
   subscriptions:
     build:
       context: ./src/subscriptions
@@ -64,8 +98,18 @@ services:
     tty: true
     networks:
       - mcp-network
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
 
+  # ---------------------------------------------------------------------------
   # Users MCP Server
+  # ---------------------------------------------------------------------------
   users:
     build:
       context: ./src/users
@@ -86,8 +130,18 @@ services:
     tty: true
     networks:
       - mcp-network
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
 
+  # ---------------------------------------------------------------------------
   # Workspaces MCP Server
+  # ---------------------------------------------------------------------------
   workspaces:
     build:
       context: ./src/workspaces
@@ -108,8 +162,18 @@ services:
     tty: true
     networks:
       - mcp-network
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
 
-# Named volumes for persistent log storage
+# =============================================================================
+# Named Volumes - Persistent log storage
+# =============================================================================
 volumes:
   audit-logs-data:
     driver: local
@@ -122,7 +186,12 @@ volumes:
   workspaces-data:
     driver: local
 
-# Network for inter-service communication (if needed)
+# =============================================================================
+# Networks - Service isolation
+# =============================================================================
 networks:
   mcp-network:
     driver: bridge
+    # Note: internal: true would isolate from host, but MCP servers need
+    # external API access to HPE GreenLake
+

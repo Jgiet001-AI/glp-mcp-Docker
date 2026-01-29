@@ -1,5 +1,27 @@
-# Use latest patched Python slim image
-FROM python:3.11-slim-bookworm
+# syntax=docker/dockerfile:1
+# Multi-stage optimized Dockerfile for GreenLake MCP Audit Logs Server
+
+# =============================================================================
+# Stage 1: Dependencies (cached layer)
+# =============================================================================
+FROM python:3.11-slim-bookworm AS deps
+
+# Install uv package manager (pinned version for reproducibility)
+RUN pip install --no-cache-dir uv==0.5.14
+
+WORKDIR /app
+
+# Copy only dependency files first (for layer caching)
+COPY pyproject.toml uv.lock ./
+
+# Install dependencies with cache mount for faster rebuilds
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen --no-dev
+
+# =============================================================================
+# Stage 2: Runtime (minimal production image)
+# =============================================================================
+FROM python:3.11-slim-bookworm AS runtime
 
 # OCI Image Labels
 LABEL org.opencontainers.image.title="GreenLake MCP Audit Logs Server"
@@ -18,22 +40,22 @@ RUN apt-get update && \
 RUN groupadd --gid 1000 mcpuser && \
     useradd --uid 1000 --gid 1000 --create-home mcpuser
 
+# Install uv in runtime (needed to run the app)
+RUN pip install --no-cache-dir uv==0.5.14
+
 WORKDIR /app
 
-# Install uv package manager (pinned version for reproducibility)
-RUN pip install --no-cache-dir uv==0.5.14
+# Copy installed dependencies from deps stage
+COPY --from=deps /app/.venv /app/.venv
 
 # Copy application code
 COPY --chown=mcpuser:mcpuser . .
 
-# Install dependencies as root (needs write to cache), then switch
-RUN uv sync --frozen --no-dev
-
 # Switch to non-root user
 USER mcpuser
 
-# Health check
+# Health check - verify server module can be imported
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD python -c "import sys; sys.exit(0)" || exit 1
+    CMD python -c "from server import mcp_server; print('healthy')" || exit 1
 
 CMD ["uv", "run", "python", "__main__.py"]

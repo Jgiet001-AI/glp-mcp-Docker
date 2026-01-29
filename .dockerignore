@@ -1,0 +1,61 @@
+# =============================================================================
+# GLP MCP Docker - Root .dockerignore
+# =============================================================================
+
+# Git
+.git/
+.gitignore
+.github/
+
+# Documentation (not needed in containers)
+*.md
+
+# Environment files (credentials - never include)
+.env
+.env.*
+!.env.example
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+*.egg
+
+# Testing and coverage
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# Build artifacts
+build/
+dist/
+*.whl
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Logs
+*.log
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Scripts (build-time only)
+scripts/

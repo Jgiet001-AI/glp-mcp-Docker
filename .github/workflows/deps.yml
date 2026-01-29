@@ -1,0 +1,93 @@
+# =============================================================================
+# HPE GreenLake MCP Docker - Dependency Updates
+# =============================================================================
+# Automatically updates Python dependencies and creates PRs
+#
+# Schedule: Weekly on Sundays at midnight UTC
+# =============================================================================
+
+name: Dependency Updates
+
+on:
+    schedule:
+        - cron: "0 0 * * 0" # Weekly on Sunday
+    workflow_dispatch:
+
+permissions:
+    contents: write
+    pull-requests: write
+
+jobs:
+    update-dependencies:
+        name: Update ${{ matrix.service }} Dependencies
+        runs-on: ubuntu-latest
+        strategy:
+            fail-fast: false
+            matrix:
+                service:
+                    - audit-logs
+                    - devices
+                    - subscriptions
+                    - users
+                    - workspaces
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Set up Python
+              uses: actions/setup-python@v5
+              with:
+                  python-version: "3.11"
+
+            - name: Install uv
+              run: pip install uv
+
+            - name: Update dependencies
+              id: update
+              working-directory: src/${{ matrix.service }}
+              run: |
+                  # Capture current lock hash
+                  old_hash=$(sha256sum uv.lock | cut -d' ' -f1)
+
+                  # Update dependencies
+                  uv sync --upgrade
+
+                  # Check if changed
+                  new_hash=$(sha256sum uv.lock | cut -d' ' -f1)
+
+                  if [ "$old_hash" != "$new_hash" ]; then
+                    echo "changed=true" >> $GITHUB_OUTPUT
+                    echo "📦 Dependencies updated for ${{ matrix.service }}"
+                  else
+                    echo "changed=false" >> $GITHUB_OUTPUT
+                    echo "✅ No updates available for ${{ matrix.service }}"
+                  fi
+
+            - name: Create Pull Request
+              if: steps.update.outputs.changed == 'true'
+              uses: peter-evans/create-pull-request@v6
+              with:
+                  token: ${{ secrets.GITHUB_TOKEN }}
+                  commit-message: "deps(${{ matrix.service }}): update Python dependencies"
+                  title: "deps(${{ matrix.service }}): Update Python dependencies"
+                  body: |
+                      ## 🔄 Automated Dependency Update
+
+                      This PR updates the Python dependencies for the **${{ matrix.service }}** MCP server.
+
+                      ### Changes
+                      - Updated `uv.lock` with latest compatible versions
+
+                      ### Checklist
+                      - [ ] Review updated dependencies
+                      - [ ] Verify CI passes
+                      - [ ] Test locally if needed
+
+                      ---
+                      *This PR was automatically created by the dependency update workflow.*
+                  branch: deps/${{ matrix.service }}-update-${{ github.run_number }}
+                  labels: |
+                      dependencies
+                      automated
+                  reviewers: ${{ github.repository_owner }}
