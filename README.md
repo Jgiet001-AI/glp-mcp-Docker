@@ -1,5 +1,7 @@
 # GreenLake MCP Docker Setup
 
+> ⚠️ **DISCLAIMER: This is an unofficial, community-maintained project.** It is not affiliated with, endorsed by, or supported by Hewlett Packard Enterprise (HPE). For the official GreenLake MCP implementation, please visit [HewlettPackard/gl-mcp](https://github.com/HewlettPackard/gl-mcp).
+
 Docker setup scripts and configuration for GreenLake Platform MCP servers.
 
 ## Overview
@@ -205,18 +207,21 @@ chmod +x scripts/run_security_checks.sh
 ### Security Check Details
 
 #### Bandit (Code Security)
+
 - **Purpose**: Finds common security issues in Python code
 - **Checks for**: SQL injection, shell injection, hardcoded passwords, use of `eval()`, weak crypto, etc.
 - **Output**: `bandit-results.json`
 - **Severity levels**: HIGH (must fix), MEDIUM (review), LOW (informational)
 
 #### pip-audit (Dependency Vulnerabilities)
+
 - **Purpose**: Identifies known vulnerabilities in installed packages
 - **Data source**: PyPI Advisory Database and OSV (Open Source Vulnerability) database
 - **Output**: `pip-audit-results.json`
 - **Action**: Update vulnerable packages to fixed versions
 
 #### detect-secrets (Secret Detection)
+
 - **Purpose**: Prevents accidental commit of sensitive data
 - **Detects**: API keys, passwords, tokens, private keys, AWS credentials, etc.
 - **Allowlist**: Common test/example values are automatically ignored
@@ -234,35 +239,6 @@ chmod +x scripts/run_security_checks.sh
 | `GREENLAKE_LOG_LEVEL` | Log level: `DEBUG`, `INFO`, `WARNING`, `ERROR` | `INFO` |
 | `GREENLAKE_FILE_LOGGING` | Enable file logging | `false` |
 
-## Docker Hub Images
-
-Pre-built images are available on Docker Hub for quick deployment without building locally:
-
-| Service | Image |
-|---------|-------|
-| audit-logs | `jgiet001/greenlake-mcp-audit-logs` |
-| devices | `jgiet001/greenlake-mcp-devices` |
-| subscriptions | `jgiet001/greenlake-mcp-subscriptions` |
-| users | `jgiet001/greenlake-mcp-users` |
-| workspaces | `jgiet001/greenlake-mcp-workspaces` |
-
-### Using Pre-built Images
-
-```bash
-# Configure environment
-cp .env.example .env
-# Edit .env with your GreenLake credentials
-
-# Run using pre-built images
-docker-compose -f docker-compose.hub.yml up -d
-```
-
-### Available Tags
-
-- `latest` - Latest stable build from main branch
-- `vX.Y.Z` - Specific version (e.g., `v1.0.0`)
-- `sha-XXXXXXX` - Specific commit build
-
 ## Scripts
 
 | Script | Purpose |
@@ -279,8 +255,8 @@ docker-compose -f docker-compose.hub.yml up -d
 
 ## Acknowledgments
 
-This project is based on [gl-mcp](https://github.com/HewlettPackard/gl-mcp) by Hewlett Packard Enterprise, licensed under the MIT License.
+This project is based on [gl-mcp](https://github.com/HewlettPackard/gl-mcp) by Hewlett Packard Enterprise, licensed under the Apache License 2.0.
 
 ## License
 
-MIT License
+Apache License 2.0 - See the upstream [gl-mcp LICENSE](https://github.com/HewlettPackard/gl-mcp/blob/main/LICENSE) for details.
