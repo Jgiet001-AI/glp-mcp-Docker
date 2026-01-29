@@ -12,226 +12,210 @@
 name: CI/CD Pipeline
 
 on:
-    push:
-        branches: [main]
-        paths:
-            - "src/**"
-            - "docker-compose.yml"
-            - ".github/workflows/**"
-    pull_request:
-        branches: [main]
-    workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "docker-compose.yml"
+      - ".github/workflows/**"
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
 
 env:
-    DOCKER_BUILDKIT: 1
-    COMPOSE_DOCKER_CLI_BUILD: 1
+  DOCKER_BUILDKIT: 1
+  COMPOSE_DOCKER_CLI_BUILD: 1
 
 jobs:
-    # ---------------------------------------------------------------------------
-    # Lint and Validate
-    # ---------------------------------------------------------------------------
-    lint:
-        name: Lint & Validate
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v4
+  # ---------------------------------------------------------------------------
+  # Lint and Validate
+  # ---------------------------------------------------------------------------
+  lint:
+    name: Lint & Validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-            - name: Validate Docker Compose
-              run: docker compose config --quiet
+      - name: Validate Docker Compose
+        run: docker compose config --quiet
 
-            - name: Lint Dockerfiles
-              uses: hadolint/hadolint-action@v3.1.0
-              with:
-                  dockerfile: src/audit-logs/Dockerfile
-                  failure-threshold: warning
+      - name: Lint Dockerfiles
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: src/audit-logs/Dockerfile
+          failure-threshold: warning
 
-            - name: Lint all Dockerfiles
-              run: |
-                  for dockerfile in src/*/Dockerfile; do
-                    echo "Linting $dockerfile..."
-                    docker run --rm -i hadolint/hadolint < "$dockerfile" || true
-                  done
+      - name: Lint all Dockerfiles
+        run: |
+          for dockerfile in src/*/Dockerfile; do
+            echo "Linting $dockerfile..."
+            docker run --rm -i hadolint/hadolint < "$dockerfile" || true
+          done
 
-    # ---------------------------------------------------------------------------
-    # Build All Services
-    # ---------------------------------------------------------------------------
-    build:
-        name: Build ${{ matrix.service }}
-        runs-on: ubuntu-latest
-        needs: lint
-        strategy:
-            fail-fast: false
-            matrix:
-                service:
-                    - audit-logs
-                    - devices
-                    - subscriptions
-                    - users
-                    - workspaces
+  # ---------------------------------------------------------------------------
+  # Build All Services
+  # ---------------------------------------------------------------------------
+  build:
+    name: Build ${{ matrix.service }}
+    runs-on: ubuntu-latest
+    needs: lint
+    strategy:
+      fail-fast: false
+      matrix:
+        service:
+          - audit-logs
+          - devices
+          - subscriptions
+          - users
+          - workspaces
 
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v4
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-            - name: Set up Docker Buildx
-              uses: docker/setup-buildx-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-            - name: Build ${{ matrix.service }}
-              uses: docker/build-push-action@v5
-              with:
-                  context: ./src/${{ matrix.service }}
-                  push: false
-                  load: true
-                  tags: glp-mcp-${{ matrix.service }}:${{ github.sha }}
-                  cache-from: type=gha
-                  cache-to: type=gha,mode=max
+      - name: Build ${{ matrix.service }}
+        uses: docker/build-push-action@v5
+        with:
+          context: ./src/${{ matrix.service }}
+          push: false
+          load: true
+          tags: glp-mcp-${{ matrix.service }}:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
-            - name: Test container starts
-              run: |
-                  docker run --rm -d --name test-${{ matrix.service }} \
-                    -e GREENLAKE_CLIENT_ID=test \
-                    -e GREENLAKE_CLIENT_SECRET=test \
-                    -e GREENLAKE_WORKSPACE_ID=test \
-                    glp-mcp-${{ matrix.service }}:${{ github.sha }}
+      - name: Test container image
+        run: |
+          # MCP servers use stdio transport and exit when stdin closes
+          # Test that the container can start and import the server module
+          docker run --rm \
+            -e GREENLAKE_CLIENT_ID=test \
+            -e GREENLAKE_CLIENT_SECRET=test \
+            -e GREENLAKE_WORKSPACE_ID=test \
+            glp-mcp-${{ matrix.service }}:${{ github.sha }} \
+            python -c "from server import mcp_server; print('✅ Server module loaded successfully')"
 
-                  # Wait for container to start
-                  sleep 5
+      - name: Get image size
+        run: |
+          size=$(docker images glp-mcp-${{ matrix.service }}:${{ github.sha }} --format "{{.Size}}")
+          echo "📦 Image size for ${{ matrix.service }}: $size"
 
-                  # Check if still running
-                  if docker ps | grep -q test-${{ matrix.service }}; then
-                    echo "✅ Container started successfully"
-                    docker stop test-${{ matrix.service }}
-                  else
-                    echo "❌ Container failed to start"
-                    docker logs test-${{ matrix.service }} 2>&1 || true
-                    exit 1
-                  fi
+  # ---------------------------------------------------------------------------
+  # Security Scanning
+  # ---------------------------------------------------------------------------
+  security:
+    name: Security Scan ${{ matrix.service }}
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
+    strategy:
+      fail-fast: false
+      matrix:
+        service:
+          - audit-logs
+          - devices
+          - subscriptions
+          - users
+          - workspaces
 
-            - name: Get image size
-              run: |
-                  size=$(docker images glp-mcp-${{ matrix.service }}:${{ github.sha }} --format "{{.Size}}")
-                  echo "📦 Image size for ${{ matrix.service }}: $size"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    # ---------------------------------------------------------------------------
-    # Security Scanning
-    # ---------------------------------------------------------------------------
-    security:
-        name: Security Scan ${{ matrix.service }}
-        runs-on: ubuntu-latest
-        needs: build
-        if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
-        strategy:
-            fail-fast: false
-            matrix:
-                service:
-                    - audit-logs
-                    - devices
-                    - subscriptions
-                    - users
-                    - workspaces
+      - name: Build image for scanning
+        run: |
+          docker build -t glp-mcp-${{ matrix.service }}:scan ./src/${{ matrix.service }}
 
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v4
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: glp-mcp-${{ matrix.service }}:scan
+          format: "sarif"
+          output: "trivy-results-${{ matrix.service }}.sarif"
+          severity: "CRITICAL,HIGH"
 
-            - name: Build image for scanning
-              run: |
-                  docker build -t glp-mcp-${{ matrix.service }}:scan ./src/${{ matrix.service }}
-
-            - name: Run Trivy vulnerability scanner
-              uses: aquasecurity/trivy-action@master
-              with:
-                  image-ref: glp-mcp-${{ matrix.service }}:scan
-                  format: "sarif"
-                  output: "trivy-results-${{ matrix.service }}.sarif"
-                  severity: "CRITICAL,HIGH"
-
-            - name: Upload Trivy scan results
-              uses: github/codeql-action/upload-sarif@v3
-              if: always()
-              with:
-                  sarif_file: "trivy-results-${{ matrix.service }}.sarif"
-
-    # ---------------------------------------------------------------------------
-    # Python Code Quality
-    # ---------------------------------------------------------------------------
-    code-quality:
-        name: Code Quality
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v4
-
-            - name: Set up Python
-              uses: actions/setup-python@v5
-              with:
-                  python-version: "3.11"
-
-            - name: Install linting tools
-              run: |
-                  pip install ruff mypy
-
-            - name: Run Ruff linter
-              run: |
-                  ruff check src/ --output-format=github || true
-
-            - name: Run Ruff formatter check
-              run: |
-                  ruff format --check src/ || true
-
-    # ---------------------------------------------------------------------------
-    # Integration Test (Full Stack)
-    # ---------------------------------------------------------------------------
-    integration:
-        name: Integration Test
-        runs-on: ubuntu-latest
-        needs: build
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v4
-
-            - name: Build all services
-              run: docker compose build
-
-            - name: Start services
-              run: |
-                  docker compose up -d
-                  sleep 10
-
-            - name: Check service health
-              run: |
-                  for service in audit-logs devices subscriptions users workspaces; do
-                    status=$(docker inspect --format='{{.State.Status}}' mcp-$service 2>/dev/null || echo "not found")
-                    echo "$service: $status"
-                    if [ "$status" != "running" ]; then
-                      echo "❌ Service $service is not running"
-                      docker logs mcp-$service 2>&1 || true
-                    fi
-                  done
-
-            - name: Cleanup
-              if: always()
-              run: docker compose down -v
-
-    # ---------------------------------------------------------------------------
-    # Summary
-    # ---------------------------------------------------------------------------
-    summary:
-        name: Pipeline Summary
-        runs-on: ubuntu-latest
-        needs: [lint, build, code-quality]
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v3
         if: always()
+        with:
+          sarif_file: "trivy-results-${{ matrix.service }}.sarif"
 
-        steps:
-            - name: Check results
-              run: |
-                  echo "## 🐳 GLP MCP Docker CI/CD Summary"
-                  echo ""
-                  echo "| Job | Status |"
-                  echo "|-----|--------|"
-                  echo "| Lint | ${{ needs.lint.result }} |"
-                  echo "| Build | ${{ needs.build.result }} |"
-                  echo "| Code Quality | ${{ needs.code-quality.result }} |"
+  # ---------------------------------------------------------------------------
+  # Python Code Quality
+  # ---------------------------------------------------------------------------
+  code-quality:
+    name: Code Quality
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install linting tools
+        run: |
+          pip install ruff mypy
+
+      - name: Run Ruff linter
+        run: |
+          ruff check src/ --output-format=github || true
+
+      - name: Run Ruff formatter check
+        run: |
+          ruff format --check src/ || true
+
+  # ---------------------------------------------------------------------------
+  # Integration Test (Full Stack)
+  # ---------------------------------------------------------------------------
+  integration:
+    name: Integration Test
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build all services
+        run: docker compose build
+
+      - name: Verify all service images
+        run: |
+          # MCP servers use stdio transport - they don't stay running without a client
+          # Verify each service can start and load its server module
+          services=(audit-logs devices subscriptions users workspaces)
+          for service in "${services[@]}"; do
+            echo "Testing mcp-$service..."
+            docker compose run --rm $service python -c "from server import mcp_server; print('✅ $service: Server module loaded')" || {
+              echo "❌ $service failed to load server module"
+              exit 1
+            }
+          done
+          echo "✅ All services verified successfully"
+
+  # ---------------------------------------------------------------------------
+  # Summary
+  # ---------------------------------------------------------------------------
+  summary:
+    name: Pipeline Summary
+    runs-on: ubuntu-latest
+    needs: [lint, build, code-quality]
+    if: always()
+
+    steps:
+      - name: Check results
+        run: |
+          echo "## 🐳 GLP MCP Docker CI/CD Summary"
+          echo ""
+          echo "| Job | Status |"
+          echo "|-----|--------|"
+          echo "| Lint | ${{ needs.lint.result }} |"
+          echo "| Build | ${{ needs.build.result }} |"
+          echo "| Code Quality | ${{ needs.code-quality.result }} |"
