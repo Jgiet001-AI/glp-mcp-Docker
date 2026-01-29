@@ -21,23 +21,6 @@ This repository contains scripts to containerize the GreenLake MCP servers:
 - Docker and Docker Compose installed
 - Valid GreenLake API credentials
 
-## Container Images
-
-Pre-built container images are available on GitHub Container Registry:
-
-> ⚠️ **Security Note:** Using pre-built images means passing your `GREENLAKE_CLIENT_SECRET` to binaries you didn't build yourself. For maximum security, **build images locally** using the Quick Start guide below. Pre-built images are provided for convenience but require trusting this repository's CI/CD pipeline.
-
-```bash
-# Pull latest images
-docker pull ghcr.io/jgiet001-ai/glp-mcp-audit-logs:latest
-docker pull ghcr.io/jgiet001-ai/glp-mcp-devices:latest
-docker pull ghcr.io/jgiet001-ai/glp-mcp-subscriptions:latest
-docker pull ghcr.io/jgiet001-ai/glp-mcp-users:latest
-docker pull ghcr.io/jgiet001-ai/glp-mcp-workspaces:latest
-```
-
-Or build locally using the Quick Start guide below.
-
 ## Quick Start
 
 ### 1. Clone this repository
